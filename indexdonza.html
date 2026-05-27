@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donza - Marketplace sin registro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8fa;
+  --bg-card: #ffffff;
+  --bg-elevated: #f5f5f7;
+  --text-primary: #1c1c1e;
+  --text-secondary: #5c5c66;
+  --text-muted: #8e8e98;
+  --border: #e6e6ed;
+  --accent: #000000;
+  --accent-bg: #f0f0f2;
+  --btn-white-bg: #000000;
+  --btn-white-text: #ffffff;
+  --btn-ghost-border: #d4d4d8;
+  --btn-ghost-text: #3a3a3e;
+  --stat-label: #8e8e98;
+}
+body.dark {
+  --bg-primary: #0a0a0c;
+  --bg-secondary: #111113;
+  --bg-card: #16161a;
+  --bg-elevated: #1c1c20;
+  --text-primary: #ededee;
+  --text-secondary: #a1a1aa;
+  --text-muted: #6c6c76;
+  --border: #2a2a2e;
+  --accent: #ffffff;
+  --accent-bg: #25252b;
+  --btn-white-bg: #ffffff;
+  --btn-white-text: #0a0a0c;
+  --btn-ghost-border: #3a3a40;
+  --btn-ghost-text: #c4c4cc;
+  --stat-label: #7a7a85;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.2s, color 0.2s;
+}
+.serif { font-family: 'Cormorant Garamond', serif; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--text-muted); }
+.theme-toggle {
+  position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 24px 48px;
+  transition: background .3s, padding .3s;
+  background: transparent;
+}
+nav.scrolled {
+  background: var(--bg-primary);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 48px;
+}
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.7rem; font-weight: 400; letter-spacing: .12em;
+  color: var(--text-primary); cursor: pointer;
+}
+.nav-link {
+  font-size: .7rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--text-secondary); cursor: pointer; padding: 8px 20px;
+  background: none; transition: color .25s;
+}
+.nav-link:hover { color: var(--text-primary); }
+.nav-publish {
+  font-size: .7rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--btn-white-text); background: var(--btn-white-bg);
+  cursor: pointer; padding: 10px 24px; margin-left: 12px;
+  transition: opacity .25s; border: none;
+}
+.nav-publish:hover { opacity: 0.85; }
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+.fade-in { animation: fadeUp .6s cubic-bezier(.22,.61,.36,1) both; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+#home {
+  position: relative; width: 100vw; height: 100vh; overflow: hidden;
+}
+.video-bg {
+  position: absolute; inset:0; width:100%; height:100%;
+  overflow: hidden;
+}
+.video-bg video {
+  width:100%; height:100%; object-fit: cover;
+  opacity: 0.8;
+}
+.video-bg-fallback {
+  position: absolute; inset:0;
+  background: linear-gradient(145deg, #eaeaea 0%, #d0d0d8 100%);
+}
+body.dark .video-bg-fallback {
+  background: linear-gradient(145deg, #1a1a1e 0%, #0f0f12 100%);
+}
+.video-overlay {
+  position: absolute; inset:0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.3) 100%);
+}
+.home-content {
+  position: relative; z-index:10;
+  height:100vh; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 48px 80px;
+}
+.home-eyebrow {
+  font-size: .65rem; font-weight:500; letter-spacing:.3em; text-transform:uppercase;
+  color: var(--text-secondary); margin-bottom:18px;
+  animation: fadeUp .8s .1s both;
+}
+.home-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.5rem, 9vw, 7rem);
+  font-weight:300; line-height:.92;
+  color: var(--text-primary);
+  animation: fadeUp .8s .2s both;
+}
+.home-sub {
+  max-width:450px; margin-top:24px;
+  font-size:.85rem; font-weight:300; line-height:1.7;
+  color: var(--text-secondary);
+  animation: fadeUp .8s .35s both;
+}
+.home-actions { display:flex; gap:14px; margin-top:40px; animation: fadeUp .8s .5s both; flex-wrap:wrap; }
+.btn-white, .btn-ghost {
+  font-size: .68rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase;
+  padding: 14px 32px; cursor:pointer; transition:all .25s;
+}
+.btn-white {
+  background: var(--btn-white-bg); color: var(--btn-white-text); border:none;
+}
+.btn-white:hover { transform:translateY(-2px); opacity:0.9; }
+.btn-ghost {
+  background:transparent; border:1px solid var(--btn-ghost-border);
+  color: var(--btn-ghost-text);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.scroll-hint {
+  position:absolute; bottom:28px; right:48px; z-index:10;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  opacity:0.6;
+}
+.scroll-line { width:1px; height:48px; background: var(--text-muted); animation: scrollPulse 2s ease-in-out infinite; }
+@keyframes scrollPulse { 0%,100%{opacity:0.3;} 50%{opacity:0.8;} }
+.scroll-text { font-size:.55rem; letter-spacing:.25em; text-transform:uppercase; color: var(--text-muted); writing-mode:vertical-rl; }
+.stats-bar {
+  position:absolute; top:50%; right:48px; transform:translateY(-50%);
+  z-index:10; text-align:right; animation: fadeUp .8s .6s both;
+}
+.stat-num { font-family:'Cormorant Garamond', serif; font-size:2.2rem; font-weight:300; color: var(--text-primary); line-height:1; }
+.stat-label { font-size:.55rem; letter-spacing:.2em; text-transform:uppercase; color: var(--stat-label); margin-top:4px; }
+.inner { padding: 120px 48px 80px; max-width:1280px; margin:0 auto; }
+.pg-header { margin-bottom: 48px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+.pg-num { font-size:.6rem; letter-spacing:.3em; text-transform:uppercase; color: var(--text-muted); margin-bottom:12px; }
+.pg-title { font-family:'Cormorant Garamond', serif; font-size: clamp(2rem,4vw,3.8rem); font-weight:300; line-height:1.05; }
+.choice-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
+.choice-tile {
+  padding: 56px 40px; background: var(--bg-elevated); border:1px solid var(--border);
+  transition: all .3s; cursor:pointer;
+}
+.choice-tile:hover { transform:translateY(-4px); border-color: var(--accent); background: var(--bg-card); }
+.choice-name { font-family:'Cormorant Garamond', serif; font-size:2.8rem; font-weight:300; margin-bottom:16px; }
+.choice-desc { font-size:.75rem; color: var(--text-secondary); line-height:1.6; max-width:260px; }
+.choice-arrow { font-size:1.8rem; margin-top:28px; display:block; text-align:right; color: var(--text-muted); }
+.form-body { max-width:700px; }
+.field { margin-bottom:28px; }
+.field-label { font-size:.6rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color: var(--text-muted); margin-bottom:8px; display:block; }
+.field-input, .field-textarea, .field-select {
+  width:100%; padding:12px 0; background:transparent; border:none;
+  border-bottom:1px solid var(--border); color: var(--text-primary);
+  font-family:'Montserrat',sans-serif; font-size:.85rem; outline:none;
+  transition:border-color .2s;
+}
+.field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--accent); }
+.field-textarea { min-height:90px; resize:vertical; }
+.field-select { cursor:pointer; background: var(--bg-primary); }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:32px; }
+.upload-zone {
+  border:1px dashed var(--border); padding:20px; text-align:center;
+  cursor:pointer; transition:all .2s; background: var(--bg-elevated);
+  position: relative;
+}
+.upload-zone:hover { border-color: var(--accent); background: var(--accent-bg); }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.upload-label { font-size:.68rem; letter-spacing:.15em; text-transform:uppercase; color: var(--text-muted); }
+.upload-preview { width:100%; max-height:140px; object-fit:cover; margin-top:12px; display:none; }
+.captcha-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--border); }
+.captcha-eq { font-family:'Cormorant Garamond', serif; font-size:1.4rem; }
+.captcha-input { width:80px; padding:8px; background:transparent; border-bottom:1px solid var(--border); color: var(--text-primary); text-align:center; outline:none; }
+.captcha-refresh { background:none; border:none; color: var(--text-muted); cursor:pointer; font-size:.65rem; letter-spacing:.1em; }
+.btn-submit { margin-top:40px; padding:14px 48px; background: var(--btn-white-bg); color: var(--btn-white-text); border:none; cursor:pointer; font-size:.7rem; font-weight:600; letter-spacing:.2em; transition: all .2s; }
+.btn-submit:hover { transform:translateY(-2px); opacity:0.9; }
+.ads-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(310px,1fr)); gap:24px; }
+.ad-tile { background: var(--bg-card); border:1px solid var(--border); transition: all .2s; overflow:hidden; }
+.ad-tile:hover { transform:translateY(-3px); box-shadow:0 12px 24px rgba(0,0,0,0.05); }
+.ad-thumb { width:100%; aspect-ratio:4/3; background: var(--accent-bg); display:flex; align-items:center; justify-content:center; font-size:2.5rem; overflow:hidden; }
+.ad-thumb img { width:100%;height:100%;object-fit:cover; }
+.ad-body { padding:24px; }
+.ad-meta { display:flex; justify-content:space-between; margin-bottom:12px; }
+.ad-cat-tag { font-size:.55rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color: var(--text-muted); }
+.ad-time { font-size:.55rem; color: var(--text-muted); }
+.ad-title { font-family:'Cormorant Garamond', serif; font-size:1.4rem; font-weight:400; margin-bottom:8px; }
+.ad-desc { font-size:.72rem; color: var(--text-secondary); line-height:1.6; margin-bottom:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.ad-price { font-family:'Cormorant Garamond', serif; font-size:1.6rem; font-weight:300; margin-bottom:16px; }
+.seller-row { display:flex; align-items:center; gap:8px; }
+.seller-av { width:28px; height:28px; border-radius:50%; background: var(--accent-bg); display:flex; align-items:center; justify-content:center; overflow:hidden; font-size:.7rem; }
+.ad-btns { display:flex; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+.btn-sm { flex:1; font-size:.55rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; padding:10px; cursor:pointer; background:transparent; border:1px solid var(--border); color: var(--text-secondary); transition:all .2s; }
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.contact-reveal { display:none; margin-top:12px; padding:12px; background: var(--bg-elevated); font-size:.75rem; border-radius:4px; word-break:break-all; }
+.list-controls { display:flex; gap:12px; margin-bottom:32px; flex-wrap:wrap; align-items:center; }
+.list-search { flex:1; min-width:180px; padding:10px 0; background:transparent; border:none; border-bottom:1px solid var(--border); color: var(--text-primary); outline:none; }
+.filt { font-size:.6rem; font-weight:500; letter-spacing:.15em; text-transform:uppercase; background:none; border:1px solid var(--border); color: var(--text-muted); padding:8px 16px; cursor:pointer; transition:all .2s; }
+.filt.on, .filt:hover { border-color: var(--accent); color: var(--accent); }
+.empty { text-align:center; padding:80px 0; }
+.empty-title { font-family:'Cormorant Garamond', serif; font-size:2rem; color: var(--text-muted); }
+.overlay {
+  position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.8);
+  backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center;
+}
+.overlay.open { display:flex; }
+.modal {
+  max-width:460px; width:90%; background: var(--bg-primary); border:1px solid var(--border);
+  padding:40px; animation:fadeUp .3s;
+}
+.modal-title { font-family:'Cormorant Garamond', serif; font-size:1.8rem; font-weight:300; }
+.modal-x { float:right; background:none; border:none; font-size:1.2rem; cursor:pointer; color: var(--text-muted); }
+.code-inp { width:100%; padding:14px; font-size:1.4rem; text-align:center; background:transparent; border:1px solid var(--border); color: var(--text-primary); letter-spacing:.15em; margin:16px 0; }
+.report-options { display:flex; flex-direction:column; gap:8px; margin:20px 0; }
+.report-opt { display:flex; align-items:center; gap:12px; padding:8px; background: var(--bg-elevated); cursor:pointer; }
+.toast {
+  position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px);
+  z-index:400; background: var(--bg-card); border:1px solid var(--border);
+  padding:12px 28px; font-size:.7rem; letter-spacing:.15em; text-transform:uppercase;
+  color: var(--text-primary); opacity:0; transition:all .3s; pointer-events:none;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+@media (max-width:680px) {
+  nav { padding:18px 24px; }
+  nav.scrolled { padding:12px 24px; }
+  .home-content { padding:0 24px 60px; }
+  .stats-bar { display:none; }
+  .inner { padding:100px 24px 60px; }
+  .choice-row { grid-template-columns:1fr; }
+  .field-row { grid-template-columns:1fr; gap:16px; }
+  .scroll-hint { right:20px; }
+}
+</style>
+</head>
+<body>
+<nav id="nav"><span class="nav-logo" onclick="goHome()">Donza</span>
+  <div class="nav-links"><button class="nav-link" onclick="showPage('services')">Servicios</button>
+    <button class="nav-link" onclick="showPage('products')">Productos</button>
+    <button class="nav-publish" onclick="showPage('publish')">Publicar</button>
+  </div>
+</nav>
+<div class="theme-toggle" id="themeToggle">🌓 Modo</div>
+<div class="page active" id="home">
+  <div class="video-bg"><video id="heroVideo" autoplay muted loop playsinline><source src="" type="video/mp4"></video><div class="video-bg-fallback"></div></div>
+  <div class="video-overlay"></div>
+  <div class="stats-bar"><div class="stat-item"><div class="stat-num" id="s-total">0</div><div class="stat-label">Anuncios</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-serv">0</div><div class="stat-label">Servicios</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-prod">0</div><div class="stat-label">Productos</div></div>
+  </div>
+  <div class="home-content"><div class="home-eyebrow">Marketplace · Sin registro · Gratis</div>
+    <h1 class="home-title serif">Vende.<br><em>Conecta.</em><br>Crece.</h1>
+    <p class="home-sub">Publica tu servicio o producto en segundos. Sin cuentas, sin comisiones.</p>
+    <div class="home-actions"><button class="btn-white" onclick="showPage('publish')">Publicar ahora</button>
+      <button class="btn-ghost" onclick="showPage('services')">Ver servicios</button>
+      <button class="btn-ghost" onclick="showPage('products')">Ver productos</button>
+    </div>
+  </div>
+  <div class="scroll-hint"><div class="scroll-line"></div><span class="scroll-text">Scroll</span></div>
+</div>
+<div class="page fade-in" id="publish"><div class="inner"><div class="pg-header"><div class="pg-num">01 — Publicar</div><h2 class="pg-title serif">¿Qué deseas<br><em>publicar?</em></h2><p class="pg-desc">Elige tipo. Rápido, sin registro.</p></div>
+  <div class="choice-row"><div class="choice-tile" onclick="showForm('service')"><div class="choice-name serif">Servicio</div><p class="choice-desc">Diseño, clases, consultoría, etc.</p><span class="choice-arrow">↗</span></div>
+    <div class="choice-tile" onclick="showForm('product')"><div class="choice-name serif">Producto</div><p class="choice-desc">Físico o digital, electrónicos, ropa, etc.</p><span class="choice-arrow">↗</span></div>
+  </div>
+</div></div>
+<div class="page fade-in" id="form-page"><div class="inner"><div class="pg-header"><div class="pg-num" id="form-pg-num">02 — Nuevo</div><h2 class="pg-title serif" id="form-title">Crear <em>Anuncio</em></h2></div>
+  <div class="form-body"><div class="field"><label class="field-label">Título *</label><input id="f-title" class="field-input" maxlength="80" placeholder="Ej: Diseño de logos profesionales"></div>
+    <div class="field"><label class="field-label">Descripción *</label><textarea id="f-desc" class="field-textarea" placeholder="Describe tu oferta con detalle..."></textarea></div>
+    <div class="field field-row"><div><label class="field-label">Precio</label><input id="f-price" class="field-input" placeholder="Ej: RD$1,500"></div>
+      <div><label class="field-label">Categoría *</label><select id="f-cat" class="field-select"><option value="">Seleccionar…</option></select></div>
+    </div>
+    <div class="field"><label class="field-label">Contacto *</label><input id="f-contact" class="field-input" placeholder="WhatsApp o email"></div>
+    <div class="field field-row"><div><label class="field-label">Tu nombre</label><input id="f-seller" class="field-input" placeholder="Ej: María García"></div>
+      <div><label class="field-label">Foto perfil</label><div class="upload-zone" style="padding:12px;"><input type="file" id="avFile" accept="image/*"><span class="upload-label">Subir avatar</span><img id="av-prev" class="upload-preview" style="height:40px;"></div></div>
+    </div>
+    <div class="field"><label class="field-label">Imagen anuncio</label><div class="upload-zone" id="imgZone"><input type="file" id="imgFile" accept="image/*"><span id="img-lbl" class="upload-label">Subir imagen principal</span><img id="img-prev" class="upload-preview"></div></div>
+    <div class="field"><label class="field-label">Verificación *</label><div class="captcha-row"><span class="captcha-eq" id="cap-q"></span><span>=</span><input id="cap-a" class="captcha-input" type="number"><button class="captcha-refresh" onclick="newCaptcha()">↺ Nuevo</button></div></div>
+    <button class="btn-submit" onclick="submitAd()">Publicar anuncio</button>
+  </div>
+</div></div>
+<div class="page fade-in" id="success-page"><div class="inner"><div style="max-width:560px;"><div class="pg-num" style="border-bottom:none;">Publicado</div><h2 class="pg-title serif">Listo,<br><em>ya está visible.</em></h2><div style="background:var(--bg-elevated); padding:28px; margin:32px 0;"><div style="font-size:.6rem; letter-spacing:.2em; color:var(--text-muted);">Tu código de edición</div><div id="suc-code" style="font-size:2.2rem; font-weight:300; letter-spacing:6px; font-family:'Cormorant Garamond';">—</div></div><p style="margin-bottom:32px;">Guarda este código para editar o eliminar tu anuncio.</p><button class="btn-white" onclick="showPage('services')">Ver servicios</button></div></div></div>
+<div class="page fade-in" id="services"><div class="inner"><div class="pg-header"><div class="pg-num">Servicios</div><h2 class="pg-title serif">Profesionales <em>disponibles</em></h2></div><div class="list-controls"><input class="list-search" id="srch-s" placeholder="Buscar servicio..." oninput="renderList('service')"></div><div class="ads-grid" id="grid-s"></div></div></div>
+<div class="page fade-in" id="products"><div class="inner"><div class="pg-header"><div class="pg-num">Productos</div><h2 class="pg-title serif">Artículos <em>en venta</em></h2></div><div class="list-controls"><input class="list-search" id="srch-p" placeholder="Buscar producto..." oninput="renderList('product')"></div><div class="ads-grid" id="grid-p"></div></div></div>
+<div class="overlay" id="mod-edit"><div class="modal"><div class="modal-hd"><div class="modal-title serif">Eliminar anuncio</div><button class="modal-x" onclick="closeModal('mod-edit')">✕</button></div><input class="code-inp" id="edit-inp" placeholder="Código ej: ABC-123"><div id="edit-err" style="color:#d44; font-size:.7rem;"></div><button class="btn-submit" style="background:#aa2e2e; margin-top:16px;" onclick="deleteByCode()">Eliminar definitivamente</button><button class="btn-ghost" style="margin-top:12px; width:100%;" onclick="closeModal('mod-edit')">Cancelar</button></div></div>
+<div class="overlay" id="mod-report"><div class="modal"><div class="modal-hd"><div class="modal-title serif">Reportar</div><button class="modal-x" onclick="closeModal('mod-report')">✕</button></div><div class="report-options" id="reportOpts"></div><button class="btn-submit" style="margin-top:0;" onclick="submitReport()">Enviar reporte</button></div></div>
+<div class="toast" id="toast"></div>
+<script>
+// DATOS - Usando localStorage (no necesita PHP)
+let adsData = [];
+let currentDeleteId = null;
+let currentReportId = null;
+let captchaAnswer = 0;
+let currentFormType = 'service';
+let imageBase64 = null;
+let avatarBase64 = null;
+
+const categoryMap = {
+  service: ['Diseño Gráfico','Tecnología / IT','Construcción','Educación / Clases','Salud / Bienestar','Transporte','Limpieza','Fotografía','Marketing','Legal','Belleza','Otro Servicio'],
+  product: ['Electrónicos','Ropa y Accesorios','Hogar y Jardín','Vehículos','Alimentos','Deportes','Arte','Libros','Juguetes','Mascotas','Otro Producto']
+};
+
+// Cargar datos guardados
+function loadData() {
+  const saved = localStorage.getItem('donza_ads');
+  if(saved) {
+    adsData = JSON.parse(saved);
+  } else {
+    // Datos de ejemplo
+    adsData = [
+      { id: 's1', type: 'service', title: 'Diseño de logos y branding', desc: 'Logos profesionales para tu empresa. Incluye 3 propuestas.', price: 'RD$2,500', cat: 'Diseño Gráfico', contact: 'WhatsApp: +1 829-555-0101', seller: 'Ana Creativa', date: Date.now() - 86400000, code: 'ANA-X7K', reports: 0, image: null, avatar: null },
+      { id: 's2', type: 'service', title: 'Clases de inglés online', desc: 'Clases personalizadas para adultos y niños.', price: 'RD$800/hora', cat: 'Educación / Clases', contact: 'WhatsApp: +1 809-555-0202', seller: 'Prof. Carlos', date: Date.now() - 86400000, code: 'CAR-M3P', reports: 0, image: null, avatar: null },
+      { id: 'p1', type: 'product', title: 'iPhone 13 Pro 256GB', desc: 'Perfecto estado, batería al 92%.', price: 'RD$35,000', cat: 'Electrónicos', contact: 'WhatsApp: +1 809-555-0303', seller: 'Luis Ventas', date: Date.now() - 3600000, code: 'LUI-Q9R', reports: 0, image: null, avatar: null },
+      { id: 'p2', type: 'product', title: 'Silla ergonómica', desc: 'Soporte lumbar, ajustable.', price: 'RD$8,500', cat: 'Hogar y Jardín', contact: 'email: muebles@donza.do', seller: 'Muebles RD', date: Date.now() - 7200000, code: 'MUE-W2T', reports: 0, image: null, avatar: null }
+    ];
+    saveData();
+  }
+  updateStats();
+  renderList('service');
+  renderList('product');
+}
+
+function saveData() {
+  localStorage.setItem('donza_ads', JSON.stringify(adsData));
+}
+
+function updateStats() {
+  document.getElementById('s-total').innerText = adsData.length;
+  document.getElementById('s-serv').innerText = adsData.filter(a => a.type === 'service').length;
+  document.getElementById('s-prod').innerText = adsData.filter(a => a.type === 'product').length;
+}
+
+function updateCatSelect() {
+  const sel = document.getElementById('f-cat');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">Seleccionar…</option>';
+  categoryMap[currentFormType].forEach(c => {
+    let o = document.createElement('option');
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
+  });
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  if(id === 'services' || id === 'products') {
+    renderList(id === 'services' ? 'service' : 'product');
+  }
+}
+
+function goHome() { showPage('home'); }
+
+function showForm(type) {
+  currentFormType = type;
+  updateCatSelect();
+  imageBase64 = null;
+  avatarBase64 = null;
+  document.getElementById('img-prev').style.display = 'none';
+  document.getElementById('img-prev').src = '';
+  document.getElementById('av-prev').style.display = 'none';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-contact').value = '';
+  document.getElementById('f-seller').value = '';
+  newCaptcha();
+  document.getElementById('form-pg-num').innerText = `02 — Nuevo ${type === 'service' ? 'Servicio' : 'Producto'}`;
+  document.getElementById('form-title').innerHTML = `Crear <em>${type === 'service' ? 'Servicio' : 'Producto'}</em>`;
+  showPage('form-page');
+}
+
+function newCaptcha() {
+  let a = Math.floor(Math.random() * 10) + 2;
+  let b = Math.floor(Math.random() * 10) + 2;
+  captchaAnswer = a + b;
+  document.getElementById('cap-q').innerText = `${a} + ${b}`;
+  document.getElementById('cap-a').value = '';
+}
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i = 0; i < 3; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  code += '-';
+  for(let i = 0; i < 3; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function submitAd() {
+  const title = document.getElementById('f-title').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const cat = document.getElementById('f-cat').value;
+  const contact = document.getElementById('f-contact').value.trim();
+  const price = document.getElementById('f-price').value.trim();
+  const seller = document.getElementById('f-seller').value.trim() || 'Anónimo';
+  const captchaVal = parseInt(document.getElementById('cap-a').value);
+
+  if(!title) { toast('❌ El título es obligatorio'); return; }
+  if(!desc) { toast('❌ La descripción es obligatoria'); return; }
+  if(!cat) { toast('❌ Selecciona una categoría'); return; }
+  if(!contact) { toast('❌ El contacto es obligatorio'); return; }
+  if(isNaN(captchaVal) || captchaVal !== captchaAnswer) {
+    toast('❌ Captcha incorrecto');
+    newCaptcha();
+    return;
+  }
+
+  const newAd = {
+    id: 'ad_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+    type: currentFormType,
+    title: title,
+    desc: desc,
+    cat: cat,
+    contact: contact,
+    price: price,
+    seller: seller,
+    date: Date.now(),
+    code: generateCode(),
+    reports: 0,
+    image: imageBase64,
+    avatar: avatarBase64
+  };
+
+  adsData.unshift(newAd);
+  saveData();
+  updateStats();
+  
+  // Mostrar código en página de éxito
+  document.getElementById('suc-code').innerText = newAd.code;
+  showPage('success-page');
+  
+  toast('✅ ¡Anuncio publicado correctamente!');
+  
+  // Limpiar formulario
+  imageBase64 = null;
+  avatarBase64 = null;
+}
+
+function deleteByCode() {
+  const code = document.getElementById('edit-inp').value.trim().toUpperCase();
+  if(!code || !currentDeleteId) {
+    toast('❌ Ingresa el código');
+    return;
+  }
+  
+  const adIndex = adsData.findIndex(a => a.id === currentDeleteId);
+  if(adIndex === -1) {
+    toast('❌ Anuncio no encontrado');
+    closeModal('mod-edit');
+    return;
+  }
+  
+  if(adsData[adIndex].code !== code) {
+    document.getElementById('edit-err').innerText = 'Código incorrecto';
+    return;
+  }
+  
+  const adType = adsData[adIndex].type;
+  adsData.splice(adIndex, 1);
+  saveData();
+  updateStats();
+  renderList('service');
+  renderList('product');
+  closeModal('mod-edit');
+  toast('✅ Anuncio eliminado');
+}
+
+function submitReport() {
+  const selected = document.querySelector('input[name="rr"]:checked');
+  if(!selected) {
+    toast('❌ Selecciona un motivo');
+    return;
+  }
+  
+  const adIndex = adsData.findIndex(a => a.id === currentReportId);
+  if(adIndex !== -1) {
+    adsData[adIndex].reports = (adsData[adIndex].reports || 0) + 1;
+    saveData();
+    updateStats();
+    renderList('service');
+    renderList('product');
+    toast('✅ Reporte enviado, gracias');
+  }
+  closeModal('mod-report');
+}
+
+function renderList(type) {
+  const grid = document.getElementById(type === 'service' ? 'grid-s' : 'grid-p');
+  const searchTerm = document.getElementById(type === 'service' ? 'srch-s' : 'srch-p')?.value.toLowerCase() || '';
+  let filtered = adsData.filter(a => a.type === type && (a.reports || 0) < 5);
+  
+  if(searchTerm) {
+    filtered = filtered.filter(a => a.title.toLowerCase().includes(searchTerm) || a.desc.toLowerCase().includes(searchTerm));
+  }
+  
+  if(!filtered.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-title serif">✨ Sin anuncios</div><button class="btn-white" onclick="showPage('publish')">Publicar ahora</button></div>`;
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(ad => `
+    <div class="ad-tile">
+      <div class="ad-thumb">${ad.image ? `<img src="${ad.image}">` : (type === 'service' ? '✨' : '📦')}</div>
+      <div class="ad-body">
+        <div class="ad-meta"><span class="ad-cat-tag">${escapeHtml(ad.cat)}</span><span class="ad-time">${formatDate(ad.date)}</span></div>
+        <div class="ad-title serif">${escapeHtml(ad.title)}</div>
+        <div class="ad-desc">${escapeHtml(ad.desc.substring(0, 100))}${ad.desc.length > 100 ? '…' : ''}</div>
+        ${ad.price ? `<div class="ad-price serif">${escapeHtml(ad.price)}</div>` : ''}
+        <div class="seller-row"><div class="seller-av">${ad.avatar ? `<img src="${ad.avatar}">` : (ad.seller[0]?.toUpperCase() || '?')}</div><span>${escapeHtml(ad.seller)}</span></div>
+        <div class="ad-btns"><button class="btn-sm" onclick="toggleContact('${ad.id}')">📞 Contacto</button><button class="btn-sm" onclick="openEditModal('${ad.id}')">🗑 Eliminar</button><button class="btn-sm" onclick="openReportModal('${ad.id}')">⚠ Reportar</button></div>
+        <div class="contact-reveal" id="ct-${ad.id}">${escapeHtml(ad.contact)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function formatDate(timestamp) {
+  const d = new Date(timestamp);
+  const now = new Date();
+  const diff = now - d;
+  const hours = diff / (1000 * 60 * 60);
+  if(hours < 1) return 'Ahora';
+  if(hours < 24) return `${Math.floor(hours)}h`;
+  return d.toLocaleDateString();
+}
+
+function toggleContact(id) {
+  const el = document.getElementById('ct-' + id);
+  if(el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function openEditModal(id) {
+  currentDeleteId = id;
+  document.getElementById('edit-inp').value = '';
+  document.getElementById('edit-err').innerText = '';
+  openModal('mod-edit');
+}
+
+function openReportModal(id) {
+  currentReportId = id;
+  document.getElementById('reportOpts').innerHTML = `
+    <label class="report-opt"><input type="radio" name="rr" value="spam"><span>📢 Spam o falso</span></label>
+    <label class="report-opt"><input type="radio" name="rr" value="ilegal"><span>⚠ Contenido ilegal</span></label>
+    <label class="report-opt"><input type="radio" name="rr" value="engaño"><span>🎭 Engañoso</span></label>
+    <label class="report-opt"><input type="radio" name="rr" value="otro"><span>❓ Otro motivo</span></label>
+  `;
+  openModal('mod-report');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function escapeHtml(s) {
+  if(!s) return '';
+  return s.replace(/[&<>]/g, function(m) {
+    if(m === '&') return '&amp;';
+    if(m === '<') return '&lt;';
+    if(m === '>') return '&gt;';
+    return m;
+  });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Image upload handlers
+document.getElementById('imgFile')?.addEventListener('change', e => {
+  let f = e.target.files[0];
+  if(f) {
+    let r = new FileReader();
+    r.onload = ev => {
+      imageBase64 = ev.target.result;
+      let p = document.getElementById('img-prev');
+      p.src = imageBase64;
+      p.style.display = 'block';
+      document.getElementById('img-lbl').style.display = 'none';
+    };
+    r.readAsDataURL(f);
+  }
+});
+
+document.getElementById('avFile')?.addEventListener('change', e => {
+  let f = e.target.files[0];
+  if(f) {
+    let r = new FileReader();
+    r.onload = ev => {
+      avatarBase64 = ev.target.result;
+      let p = document.getElementById('av-prev');
+      p.src = avatarBase64;
+      p.style.display = 'block';
+    };
+    r.readAsDataURL(f);
+  }
+});
+
+// Theme
+if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+document.getElementById('themeToggle').onclick = () => {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+};
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); });
+});
+
+// Video and data loading
+window.addEventListener('load', () => {
+  loadData();
+  newCaptcha();
+  showPage('home');
+  const vid = document.getElementById('heroVideo');
+  if(vid) {
+    vid.src = 'https://cdn.pixabay.com/video/2022/11/15/139844-774167405_large.mp4';
+    vid.load();
+  }
+});
+</script>
+</body>
+</html>
